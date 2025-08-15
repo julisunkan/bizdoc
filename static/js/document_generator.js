@@ -359,6 +359,7 @@ class DocumentGenerator {
             business_address: this.businessSettings.address,
             business_logo: this.businessSettings.logo_url,
             business_signature: this.businessSettings.signature_url,
+            currency_symbol: this.businessSettings.currency_symbol,
             document_type: this.documentType,
             document_number: documentNumber,
             client: this.selectedClient,

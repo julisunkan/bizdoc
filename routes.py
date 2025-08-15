@@ -7,6 +7,7 @@ from datetime import datetime, date
 import logging
 import io
 import os
+import requests
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
@@ -321,7 +322,14 @@ def api_generate_pdf():
         # Handle logo and business info layout
         if business_logo:
             try:
-                logo = Image(business_logo, width=1.5*inch, height=0.75*inch)
+                # Download image from URL if it's a URL, otherwise treat as file path
+                if business_logo.startswith(('http://', 'https://')):
+                    response = requests.get(business_logo, timeout=10)
+                    response.raise_for_status()
+                    logo_buffer = io.BytesIO(response.content)
+                    logo = Image(logo_buffer, width=1.5*inch, height=0.75*inch)
+                else:
+                    logo = Image(business_logo, width=1.5*inch, height=0.75*inch)
                 header_data.append([logo, Paragraph(business_info_text, body_style)])
             except Exception as e:
                 logging.warning(f"Could not load logo image: {e}")
@@ -432,7 +440,7 @@ def api_generate_pdf():
             story.append(Spacer(1, 10))
 
             table_data = [['Description', 'Qty', 'Unit Price', 'Total']]
-            currency_symbol = data.get('currency_symbol', '$')
+            currency_symbol = data.get('currency_symbol') or business_settings.currency_symbol or '$'
 
             for item in items:
                 qty = float(item.get('quantity', 0))
@@ -491,7 +499,7 @@ def api_generate_pdf():
         # Professional totals section
         totals = data.get('totals', {})
         if totals:
-            currency_symbol = data.get('currency_symbol', '$')
+            currency_symbol = data.get('currency_symbol') or business_settings.currency_symbol or '$'
             subtotal = totals.get('subtotal', 0)
             tax_amount = totals.get('tax_amount', 0)
             total = totals.get('total', 0)
@@ -571,7 +579,14 @@ def api_generate_pdf():
         # Signature section
         if business_signature:
             try:
-                signature = Image(business_signature, width=1.5*inch, height=0.75*inch)
+                # Download image from URL if it's a URL, otherwise treat as file path
+                if business_signature.startswith(('http://', 'https://')):
+                    response = requests.get(business_signature, timeout=10)
+                    response.raise_for_status()
+                    signature_buffer = io.BytesIO(response.content)
+                    signature = Image(signature_buffer, width=1.5*inch, height=0.75*inch)
+                else:
+                    signature = Image(business_signature, width=1.5*inch, height=0.75*inch)
                 signature.hAlign = 'RIGHT'
                 story.append(Spacer(1, 40))
                 story.append(signature)
