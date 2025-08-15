@@ -219,8 +219,8 @@ def api_next_document_number(document_type):
 
 @app.route('/api/generate-pdf', methods=['POST'])
 def api_generate_pdf():
-    from flask import send_file
     import io
+    import os
     from reportlab.lib.pagesizes import letter
     from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
     from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
@@ -373,15 +373,45 @@ def api_generate_pdf():
         doc.build(story)
         buffer.seek(0)
         
-        # Return PDF file
+        # Save PDF to temp directory
+        temp_dir = os.path.join(os.getcwd(), 'temp_pdfs')
+        os.makedirs(temp_dir, exist_ok=True)
+        
         filename = f"{document_number}.pdf"
+        filepath = os.path.join(temp_dir, filename)
+        
+        with open(filepath, 'wb') as f:
+            f.write(buffer.getvalue())
+        
+        return jsonify({
+            'success': True,
+            'filename': filename,
+            'message': 'PDF generated successfully'
+        })
+        
+    except Exception as e:
+        logging.error(f"Error generating PDF: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/download-pdf/<filename>')
+def api_download_pdf(filename):
+    from flask import send_file
+    import os
+    
+    try:
+        temp_dir = os.path.join(os.getcwd(), 'temp_pdfs')
+        filepath = os.path.join(temp_dir, filename)
+        
+        if not os.path.exists(filepath):
+            return jsonify({'error': 'PDF file not found'}), 404
+        
         return send_file(
-            buffer,
+            filepath,
             as_attachment=True,
             download_name=filename,
             mimetype='application/pdf'
         )
         
     except Exception as e:
-        logging.error(f"Error generating PDF: {str(e)}")
-        return jsonify({'success': False, 'error': str(e)}), 500
+        logging.error(f"Error downloading PDF: {str(e)}")
+        return jsonify({'error': str(e)}), 500

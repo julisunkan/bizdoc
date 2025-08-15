@@ -380,19 +380,18 @@ class DocumentGenerator {
             });
             
             if (response.ok) {
-                // Create download link
-                const blob = await response.blob();
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.style.display = 'none';
-                a.href = url;
-                a.download = `${documentNumber}.pdf`;
-                document.body.appendChild(a);
-                a.click();
-                window.URL.revokeObjectURL(url);
-                document.body.removeChild(a);
-                
-                showAlert('PDF downloaded successfully!', 'success');
+                const result = await response.json();
+                if (result.success) {
+                    // Store PDF details for download
+                    this.generatedPdfFilename = result.filename;
+                    
+                    // Show download button
+                    this.showDownloadButton();
+                    
+                    showAlert('PDF generated successfully! Click Download PDF to save it.', 'success');
+                } else {
+                    showAlert('Error generating PDF: ' + (result.error || 'Unknown error'), 'danger');
+                }
             } else {
                 const errorData = await response.json();
                 showAlert('Error generating PDF: ' + (errorData.error || 'Unknown error'), 'danger');
@@ -401,6 +400,48 @@ class DocumentGenerator {
             console.error('PDF generation error:', error);
             showAlert('Error generating PDF: ' + error.message, 'danger');
         }
+    }
+    
+    showDownloadButton() {
+        // Remove existing download button if any
+        const existingBtn = document.getElementById('downloadPdfBtn');
+        if (existingBtn) {
+            existingBtn.remove();
+        }
+        
+        // Create download button
+        const downloadBtn = document.createElement('button');
+        downloadBtn.id = 'downloadPdfBtn';
+        downloadBtn.type = 'button';
+        downloadBtn.className = 'btn btn-success';
+        downloadBtn.innerHTML = '<i class="fas fa-download me-2"></i>Download PDF';
+        
+        // Add click event
+        downloadBtn.addEventListener('click', () => this.downloadPDF());
+        
+        // Insert after generate PDF button
+        const generateBtn = document.getElementById('generatePdfBtn');
+        generateBtn.parentNode.insertBefore(downloadBtn, generateBtn.nextSibling);
+        
+        // Add some spacing
+        downloadBtn.style.marginTop = '10px';
+    }
+    
+    downloadPDF() {
+        if (!this.generatedPdfFilename) {
+            showAlert('No PDF available for download', 'warning');
+            return;
+        }
+        
+        // Create a form and submit it to download the PDF
+        const form = document.createElement('form');
+        form.method = 'GET';
+        form.action = `/api/download-pdf/${encodeURIComponent(this.generatedPdfFilename)}`;
+        form.style.display = 'none';
+        
+        document.body.appendChild(form);
+        form.submit();
+        document.body.removeChild(form);
     }
     
     
