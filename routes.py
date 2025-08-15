@@ -274,11 +274,12 @@ def api_generate_pdf():
         # Client info
         client_info = data.get('client', {})
         if client_info:
+            client_address = client_info.get('address', '').replace('\n', '<br/>')
             client_text = f"""
             <b>Bill To:</b><br/>
             {client_info.get('name', '')}<br/>
             {client_info.get('company', '')}<br/>
-            {client_info.get('address', '').replace('\n', '<br/>')}<br/>
+            {client_address}<br/>
             {client_info.get('email', '')}<br/>
             {client_info.get('phone', '')}
             """
