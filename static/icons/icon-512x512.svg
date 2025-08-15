@@ -1,0 +1,80 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle with gradient -->
+  <defs>
+    <linearGradient id="backgroundGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0d6efd;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0b5ed7;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="documentGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.98" />
+      <stop offset="100%" style="stop-color:#f8f9fa;stop-opacity:0.95" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Main background -->
+  <circle cx="256" cy="256" r="256" fill="url(#backgroundGradient)"/>
+  
+  <!-- Main document -->
+  <rect x="128" y="96" width="256" height="320" rx="20" fill="url(#documentGradient)" stroke="#e9ecef" stroke-width="2"/>
+  
+  <!-- Document header -->
+  <rect x="148" y="116" width="216" height="40" rx="8" fill="#0d6efd" opacity="0.1"/>
+  <rect x="160" y="128" width="80" height="6" rx="3" fill="#0d6efd" opacity="0.8"/>
+  <rect x="160" y="140" width="120" height="4" rx="2" fill="#0d6efd" opacity="0.6"/>
+  
+  <!-- Document number in top right -->
+  <rect x="300" y="128" width="50" height="16" rx="4" fill="#0d6efd"/>
+  <text x="325" y="138" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="8" font-weight="bold">INV-001</text>
+  
+  <!-- Document content lines -->
+  <rect x="160" y="180" width="192" height="6" rx="3" fill="#0d6efd" opacity="0.7"/>
+  <rect x="160" y="200" width="192" height="6" rx="3" fill="#0d6efd" opacity="0.7"/>
+  <rect x="160" y="220" width="128" height="6" rx="3" fill="#0d6efd" opacity="0.7"/>
+  <rect x="160" y="240" width="160" height="6" rx="3" fill="#0d6efd" opacity="0.7"/>
+  <rect x="160" y="260" width="96" height="6" rx="3" fill="#0d6efd" opacity="0.7"/>
+  <rect x="160" y="280" width="144" height="6" rx="3" fill="#0d6efd" opacity="0.7"/>
+  
+  <!-- Table structure -->
+  <rect x="160" y="320" width="192" height="2" rx="1" fill="#dee2e6"/>
+  <rect x="160" y="340" width="192" height="6" rx="3" fill="#0d6efd" opacity="0.5"/>
+  <rect x="160" y="355" width="192" height="6" rx="3" fill="#0d6efd" opacity="0.5"/>
+  <rect x="160" y="370" width="192" height="6" rx="3" fill="#0d6efd" opacity="0.5"/>
+  
+  <!-- Total section -->
+  <rect x="260" y="390" width="92" height="2" rx="1" fill="#dee2e6"/>
+  <rect x="260" y="400" width="60" height="6" rx="3" fill="#28a745" opacity="0.8"/>
+  <rect x="260" y="415" width="70" height="8" rx="4" fill="#28a745"/>
+  
+  <!-- Currency symbol - larger and more prominent -->
+  <circle cx="352" cy="192" r="32" fill="#28a745"/>
+  <circle cx="352" cy="192" r="28" fill="white" opacity="0.2"/>
+  <text x="352" y="205" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="32" font-weight="bold">$</text>
+  
+  <!-- Secondary document (overlapping) -->
+  <rect x="200" y="160" width="200" height="250" rx="16" fill="white" opacity="0.4" stroke="#e9ecef" stroke-width="1"/>
+  
+  <!-- Professional badge/seal -->
+  <circle cx="180" cy="360" r="24" fill="#ffc107"/>
+  <circle cx="180" cy="360" r="20" fill="white" opacity="0.3"/>
+  <text x="180" y="366" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="12" font-weight="bold">✓</text>
+  
+  <!-- Decorative elements for visual appeal -->
+  <circle cx="64" cy="64" r="16" fill="white" opacity="0.2"/>
+  <circle cx="448" cy="448" r="20" fill="white" opacity="0.15"/>
+  <circle cx="64" cy="448" r="12" fill="white" opacity="0.25"/>
+  <circle cx="448" cy="64" r="14" fill="white" opacity="0.2"/>
+  
+  <!-- Modern geometric accents -->
+  <rect x="416" y="128" width="32" height="32" rx="8" fill="white" opacity="0.15"/>
+  <rect x="64" y="352" width="24" height="24" rx="6" fill="white" opacity="0.2"/>
+  <rect x="420" y="360" width="28" height="28" rx="7" fill="white" opacity="0.1"/>
+  
+  <!-- Invoice icon overlay -->
+  <rect x="320" y="300" width="60" height="40" rx="8" fill="#0d6efd" opacity="0.9"/>
+  <rect x="328" y="312" width="44" height="3" rx="1.5" fill="white"/>
+  <rect x="328" y="320" width="32" height="3" rx="1.5" fill="white"/>
+  <rect x="328" y="328" width="28" height="3" rx="1.5" fill="white"/>
+  
+  <!-- Subtle shadow effect -->
+  <ellipse cx="256" cy="480" rx="200" ry="20" fill="black" opacity="0.1"/>
+</svg>

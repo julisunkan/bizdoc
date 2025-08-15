@@ -1,0 +1,310 @@
+{% extends "base.html" %}
+
+{% block title %}Business Settings - Business Document Generator{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">
+                        <i class="fas fa-cog me-2"></i>
+                        Business Settings
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form id="businessSettingsForm">
+                        <!-- Business Information -->
+                        <h5 class="border-bottom pb-2 mb-3">Business Information</h5>
+                        
+                        <div class="mb-3">
+                            <label for="businessName" class="form-label">Business Name *</label>
+                            <input type="text" class="form-control" id="businessName" name="business_name" 
+                                   value="{{ settings.business_name }}" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" name="email" 
+                                   value="{{ settings.email }}">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="phone" class="form-label">Phone</label>
+                            <input type="tel" class="form-control" id="phone" name="phone" 
+                                   value="{{ settings.phone }}">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="website" class="form-label">Website</label>
+                            <input type="url" class="form-control" id="website" name="website" 
+                                   value="{{ settings.website }}">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="address" class="form-label">Address</label>
+                            <textarea class="form-control" id="address" name="address" rows="3">{{ settings.address }}</textarea>
+                        </div>
+
+                        <!-- Branding -->
+                        <h5 class="border-bottom pb-2 mb-3 mt-4">Branding</h5>
+                        
+                        <div class="mb-3">
+                            <label for="logoUrl" class="form-label">Logo URL</label>
+                            <input type="url" class="form-control" id="logoUrl" name="logo_url" 
+                                   value="{{ settings.logo_url }}" placeholder="https://example.com/logo.png">
+                            <div class="form-text">Enter a URL to your business logo</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="signatureUrl" class="form-label">Signature URL</label>
+                            <input type="url" class="form-control" id="signatureUrl" name="signature_url" 
+                                   value="{{ settings.signature_url }}" placeholder="https://example.com/signature.png">
+                            <div class="form-text">Enter a URL to your signature image</div>
+                        </div>
+
+                        <!-- Financial Settings -->
+                        <h5 class="border-bottom pb-2 mb-3 mt-4">Financial Settings</h5>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="currencyCode" class="form-label">Currency</label>
+                                    <select class="form-select" id="currencyCode" name="currency_code">
+                                        <!-- Will be populated by JavaScript -->
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="taxRate" class="form-label">Tax Rate (%)</label>
+                                    <input type="number" class="form-control" id="taxRate" name="tax_rate" 
+                                           value="{{ settings.tax_rate }}" min="0" max="100" step="0.01">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Document Prefixes -->
+                        <h5 class="border-bottom pb-2 mb-3 mt-4">Document Numbering</h5>
+                        
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="invoicePrefix" class="form-label">Invoice Prefix</label>
+                                    <input type="text" class="form-control" id="invoicePrefix" name="invoice_prefix" 
+                                           value="{{ settings.invoice_prefix }}">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="quotePrefix" class="form-label">Quote Prefix</label>
+                                    <input type="text" class="form-control" id="quotePrefix" name="quote_prefix" 
+                                           value="{{ settings.quote_prefix }}">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="receiptPrefix" class="form-label">Receipt Prefix</label>
+                                    <input type="text" class="form-control" id="receiptPrefix" name="receipt_prefix" 
+                                           value="{{ settings.receipt_prefix }}">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Import/Export -->
+                        <h5 class="border-bottom pb-2 mb-3 mt-4">Import/Export Settings</h5>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Export Settings</label>
+                                    <div class="d-grid gap-2">
+                                        <a href="/api/export-settings/json" class="btn btn-outline-primary btn-sm">
+                                            <i class="fas fa-download me-2"></i>Export as JSON
+                                        </a>
+                                        <a href="/api/export-settings/csv" class="btn btn-outline-primary btn-sm">
+                                            <i class="fas fa-download me-2"></i>Export as CSV
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="importFile" class="form-label">Import Settings</label>
+                                    <input type="file" class="form-control" id="importFile" accept=".json,.csv">
+                                    <button type="button" class="btn btn-outline-success btn-sm mt-2" id="importBtn">
+                                        <i class="fas fa-upload me-2"></i>Import Settings
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Save Button -->
+                        <div class="d-grid mt-4">
+                            <button type="button" class="btn btn-primary" id="saveButton">
+                                <i class="fas fa-save me-2"></i>Save Settings
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM Content Loaded - Business Settings');
+    
+    // Populate currency dropdown
+    const currencySelect = document.getElementById('currencyCode');
+    const currentCurrency = '{{ settings.currency_code }}';
+    
+    console.log('Currency select element:', currencySelect);
+    console.log('Current currency:', currentCurrency);
+    
+    Object.entries(CURRENCY_DATA).forEach(([code, data]) => {
+        const option = document.createElement('option');
+        option.value = code;
+        option.textContent = `${code} - ${data.name} (${data.symbol})`;
+        if (code === currentCurrency) {
+            option.selected = true;
+        }
+        currencySelect.appendChild(option);
+    });
+
+    // Handle form submission
+    const form = document.getElementById('businessSettingsForm');
+    console.log('Form found:', form);
+    
+    if (!form) {
+        console.error('Form not found!');
+        return;
+    }
+
+    // Handle import
+    document.getElementById('importBtn').addEventListener('click', async function() {
+        const fileInput = document.getElementById('importFile');
+        const file = fileInput.files[0];
+        
+        if (!file) {
+            showAlert('Please select a file to import', 'warning');
+            return;
+        }
+        
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        try {
+            const response = await fetch('/api/import-settings', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                showAlert('Settings imported successfully!', 'success');
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                showAlert('Error importing settings: ' + result.error, 'danger');
+            }
+        } catch (error) {
+            showAlert('Error importing settings: ' + error.message, 'danger');
+        }
+    });
+    
+    // Add click event to save button
+    const saveButton = document.getElementById('saveButton');
+    if (saveButton) {
+        console.log('Save button found, adding click listener');
+        saveButton.addEventListener('click', function(e) {
+            console.log('Save button clicked');
+            e.preventDefault();
+            handleFormSubmission();
+        });
+    } else {
+        console.error('Save button not found!');
+    }
+    
+    // Extract form submission logic into separate function
+    async function handleFormSubmission() {
+        console.log('handleFormSubmission called');
+        
+        if (!form) {
+            console.error('Form is null in handleFormSubmission');
+            alert('Error: Form not found');
+            return;
+        }
+        
+        console.log('Creating FormData from form...');
+        const formData = new FormData(form);
+        console.log('FormData created, converting to object...');
+        
+        const data = Object.fromEntries(formData.entries());
+        console.log('Raw form data:', data);
+        
+        // Validate required fields
+        if (!data.business_name || data.business_name.trim() === '') {
+            alert('Business name is required');
+            return;
+        }
+        
+        // Add currency symbol based on selected currency
+        if (typeof CURRENCY_DATA !== 'undefined' && data.currency_code) {
+            const selectedCurrency = CURRENCY_DATA[data.currency_code];
+            if (selectedCurrency) {
+                data.currency_symbol = selectedCurrency.symbol;
+                console.log('Added currency symbol:', selectedCurrency.symbol);
+            }
+        }
+        
+        try {
+            console.log('Submitting form data:', data);
+            const response = await fetch('/api/business-settings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            });
+            
+            const result = await response.json();
+            console.log('Server response:', result);
+            
+            if (result.success) {
+                if (typeof showAlert === 'function') {
+                    showAlert('Settings saved successfully!', 'success');
+                } else {
+                    alert('Settings saved successfully!');
+                }
+            } else {
+                if (typeof showAlert === 'function') {
+                    showAlert('Error saving settings: ' + result.message, 'danger');
+                } else {
+                    alert('Error saving settings: ' + result.message);
+                }
+            }
+        } catch (error) {
+            console.error('Error submitting form:', error);
+            if (typeof showAlert === 'function') {
+                showAlert('Error saving settings: ' + error.message, 'danger');
+            } else {
+                alert('Error saving settings: ' + error.message);
+            }
+        }
+    }
+    
+    // Test if CURRENCY_DATA is available
+    console.log('CURRENCY_DATA available:', typeof CURRENCY_DATA !== 'undefined');
+    if (typeof CURRENCY_DATA !== 'undefined') {
+        console.log('CURRENCY_DATA keys:', Object.keys(CURRENCY_DATA).length);
+    } else {
+        console.error('CURRENCY_DATA not loaded!');
+    }
+});
+</script>
+{% endblock %}

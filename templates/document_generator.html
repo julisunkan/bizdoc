@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+
+{% block title %}Document Generator - Business Document Generator{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <!-- Document Form -->
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">
+                        <i class="fas fa-plus-circle me-2"></i>
+                        Create New Document
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form id="documentForm">
+                        <!-- Document Type -->
+                        <div class="mb-3">
+                            <label for="documentType" class="form-label">Document Type</label>
+                            <select class="form-select" id="documentType" name="document_type" required>
+                                <option value="">Select Document Type</option>
+                                <option value="invoice">Invoice</option>
+                                <option value="quote">Quote</option>
+                                <option value="receipt">Receipt</option>
+                            </select>
+                        </div>
+
+                        <!-- Document Number -->
+                        <div class="mb-3">
+                            <label for="documentNumber" class="form-label">Document Number</label>
+                            <input type="text" class="form-control" id="documentNumber" readonly>
+                        </div>
+
+                        <!-- Client Selection -->
+                        <div class="mb-3">
+                            <label for="clientSelect" class="form-label">Client</label>
+                            <div class="d-flex gap-2">
+                                <select class="form-select" id="clientSelect" name="client_id" required>
+                                    <option value="">Select Client</option>
+                                    {% for client in clients %}
+                                    <option value="{{ client.id }}" 
+                                            data-name="{{ client.name }}"
+                                            data-email="{{ client.email }}"
+                                            data-phone="{{ client.phone }}"
+                                            data-address="{{ client.address }}"
+                                            data-company="{{ client.company }}">
+                                        {{ client.name }}{% if client.company %} - {{ client.company }}{% endif %}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#clientModal">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Dates -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="issueDate" class="form-label">Issue Date</label>
+                                    <input type="date" class="form-control" id="issueDate" name="issue_date" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="dueDate" class="form-label">Due Date</label>
+                                    <input type="date" class="form-control" id="dueDate" name="due_date">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Items Section -->
+                        <div class="mb-3">
+                            <label class="form-label">Items</label>
+                            <div id="itemsContainer">
+                                <!-- Items will be added dynamically -->
+                            </div>
+                            <button type="button" class="btn btn-outline-primary btn-sm" id="addItemBtn">
+                                <i class="fas fa-plus me-2"></i>Add Item
+                            </button>
+                        </div>
+
+                        <!-- Notes -->
+                        <div class="mb-3">
+                            <label for="notes" class="form-label">Notes</label>
+                            <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="d-grid gap-2">
+                            <button type="button" class="btn btn-primary" id="generatePdfBtn">
+                                <i class="fas fa-file-pdf me-2"></i>Generate PDF
+                            </button>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-save me-2"></i>Save Document
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Preview -->
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">
+                        <i class="fas fa-eye me-2"></i>
+                        Document Preview
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div id="documentPreview" class="document-preview">
+                        <p class="text-muted text-center">Fill in the form to see the preview</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Client Modal -->
+<div class="modal fade" id="clientModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add New Client</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="clientForm">
+                    <div class="mb-3">
+                        <label for="clientName" class="form-label">Name *</label>
+                        <input type="text" class="form-control" id="clientName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="clientEmail" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="clientEmail">
+                    </div>
+                    <div class="mb-3">
+                        <label for="clientPhone" class="form-label">Phone</label>
+                        <input type="tel" class="form-control" id="clientPhone">
+                    </div>
+                    <div class="mb-3">
+                        <label for="clientCompany" class="form-label">Company</label>
+                        <input type="text" class="form-control" id="clientCompany">
+                    </div>
+                    <div class="mb-3">
+                        <label for="clientAddress" class="form-label">Address</label>
+                        <textarea class="form-control" id="clientAddress" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveClientBtn">Save Client</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/document_generator.js') }}"></script>
+<script>
+    // Initialize document generator
+    document.addEventListener('DOMContentLoaded', function() {
+        const generator = new DocumentGenerator();
+        
+        // Set today's date as default
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('issueDate').value = today;
+        
+        // Set due date 30 days from today
+        const dueDate = new Date();
+        dueDate.setDate(dueDate.getDate() + 30);
+        document.getElementById('dueDate').value = dueDate.toISOString().split('T')[0];
+
+        // Check for URL parameters to set document type
+        const urlParams = new URLSearchParams(window.location.search);
+        const docType = urlParams.get('type');
+        if (docType) {
+            document.getElementById('documentType').value = docType;
+            generator.updateDocumentNumber();
+        }
+    });
+</script>
+{% endblock %}
