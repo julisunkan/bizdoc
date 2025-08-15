@@ -299,31 +299,43 @@ def api_generate_pdf():
         document_type = data.get('document_type', 'Document').title()
         document_number = data.get('document_number', 'DOC-001')
 
-        # Professional header with business name and logo
+        # Professional header with business name and logo in aligned layout
+        header_data = []
+        
+        # Create business info section
+        business_info_lines = [f"<b>{business_name}</b>"]
+        if business_address:
+            business_info_lines.append(business_address.replace('\n', '<br/>'))
+        if business_email:
+            business_info_lines.append(f"Email: {business_email}")
+        if business_phone:
+            business_info_lines.append(f"Phone: {business_phone}")
+        
+        business_info_text = "<br/>".join(business_info_lines)
+        
+        # Handle logo and business info layout
         if business_logo:
             try:
                 logo = Image(business_logo, width=1.5*inch, height=0.75*inch)
-                logo.hAlign = 'LEFT'
-                story.append(logo)
+                header_data.append([logo, Paragraph(business_info_text, body_style)])
             except Exception as e:
                 logging.warning(f"Could not load logo image: {e}")
-
-        title = Paragraph(f"{business_name}", title_style)
-        story.append(title)
-
-        # Business contact info (if available)
-        if business_email or business_phone or business_address:
-            business_contact = []
-            if business_address:
-                business_contact.append(business_address.replace('\n', '<br/>'))
-            if business_email:
-                business_contact.append(f"Email: {business_email}")
-            if business_phone:
-                business_contact.append(f"Phone: {business_phone}")
-
-            contact_text = "<br/>".join(business_contact)
-            contact_para = Paragraph(contact_text, address_style)
-            story.append(contact_para)
+                header_data.append(["", Paragraph(business_info_text, body_style)])
+        else:
+            header_data.append(["", Paragraph(business_info_text, body_style)])
+        
+        if header_data:
+            header_table = Table(header_data, colWidths=[1.8*inch, 4.7*inch])
+            header_table.setStyle(TableStyle([
+                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                ('ALIGN', (0, 0), (0, 0), 'LEFT'),
+                ('ALIGN', (1, 0), (1, 0), 'LEFT'),
+                ('LEFTPADDING', (0, 0), (-1, -1), 0),
+                ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+                ('TOPPADDING', (0, 0), (-1, -1), 0),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
+            ]))
+            story.append(header_table)
 
         story.append(Spacer(1, 30))
 
@@ -350,40 +362,41 @@ def api_generate_pdf():
         story.append(doc_header_table)
         story.append(Spacer(1, 25))
 
-        # Professional client and date info layout
+        # Professional client and date info layout with proper alignment
         client_info = data.get('client', {})
         issue_date = data.get('issue_date', '')
         due_date = data.get('due_date', '')
 
-        # Create two-column layout for client and date info
+        # Create properly aligned two-column layout for client and date info
         info_data = []
 
-        # Left column - Client info
+        # Left column - Client info with consistent formatting
+        client_lines = []
         if client_info:
-            client_lines = ["BILL TO:"]
+            client_lines.append("<b>BILL TO:</b>")
             if client_info.get('name'):
                 client_lines.append(client_info.get('name'))
             if client_info.get('company'):
                 client_lines.append(client_info.get('company'))
             if client_info.get('address'):
-                client_lines.extend(client_info.get('address').split('\n'))
+                # Handle multi-line addresses properly
+                address_lines = client_info.get('address').split('\n')
+                client_lines.extend([line.strip() for line in address_lines if line.strip()])
             if client_info.get('email'):
                 client_lines.append(client_info.get('email'))
             if client_info.get('phone'):
                 client_lines.append(client_info.get('phone'))
 
-            client_text = "<br/>".join(client_lines)
-        else:
-            client_text = ""
+        client_text = "<br/>".join(client_lines) if client_lines else ""
 
-        # Right column - Date info
+        # Right column - Date info with consistent formatting
         date_lines = []
         if issue_date:
-            date_lines.append(f"<b>Issue Date:</b> {issue_date}")
+            date_lines.append(f"<b>Issue Date:</b><br/>{issue_date}")
         if due_date:
-            date_lines.append(f"<b>Due Date:</b> {due_date}")
+            date_lines.append(f"<b>Due Date:</b><br/>{due_date}")
 
-        date_text = "<br/>".join(date_lines)
+        date_text = "<br/><br/>".join(date_lines) if date_lines else ""
 
         if client_text or date_text:
             info_data = [[
@@ -391,9 +404,11 @@ def api_generate_pdf():
                 Paragraph(date_text, body_style) if date_text else ""
             ]]
 
-            info_table = Table(info_data, colWidths=[3.5*inch, 2.5*inch])
+            info_table = Table(info_data, colWidths=[3.8*inch, 2.7*inch])
             info_table.setStyle(TableStyle([
                 ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                ('ALIGN', (0, 0), (0, 0), 'LEFT'),   # Client info left-aligned
+                ('ALIGN', (1, 0), (1, 0), 'RIGHT'),  # Date info right-aligned
                 ('LEFTPADDING', (0, 0), (-1, -1), 0),
                 ('RIGHTPADDING', (0, 0), (-1, -1), 0),
                 ('TOPPADDING', (0, 0), (-1, -1), 0),
