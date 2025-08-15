@@ -1,6 +1,6 @@
 {
-    "name": "Business Document Generator",
-    "short_name": "DocGen",
+    "name": "Business Documents Generator",
+    "short_name": "DocsGen",
     "description": "Professional invoice, quote, and receipt generator with PWA capabilities",
     "start_url": "/",
     "display": "standalone",
