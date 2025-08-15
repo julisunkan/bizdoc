@@ -344,435 +344,66 @@ class DocumentGenerator {
             return;
         }
         
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        
         const documentNumber = document.getElementById('documentNumber').value;
         const issueDate = document.getElementById('issueDate').value;
         const dueDate = document.getElementById('dueDate').value;
         const notes = document.getElementById('notes').value;
         
         const { subtotal, taxAmount, total, taxRate } = this.calculateTotals();
-        const documentTitle = this.documentType.charAt(0).toUpperCase() + this.documentType.slice(1);
         
-        // Set vibrant color scheme
-        doc.setTextColor(44, 62, 80);  // Dark blue-gray text
-        doc.setDrawColor(52, 152, 219);  // Blue borders
-        
-        // Add business logo if available
-        let logoHeight = 0;
-        if (this.businessSettings.logo_url) {
-            try {
-                const logoData = await this.loadImageAsBase64(this.businessSettings.logo_url);
-                if (logoData) {
-                    // Add logo (max width 40, max height 20)
-                    const logoWidth = 40;
-                    const logoHeightCalc = 20;
-                    doc.addImage(logoData, 'PNG', 20, 10, logoWidth, logoHeightCalc);
-                    logoHeight = logoHeightCalc + 5;
-                }
-            } catch (error) {
-                console.warn('Could not load logo:', error);
-            }
-        }
-        
-        // Modern header design
-        const businessNameY = Math.max(30, 15 + logoHeight);
-        
-        // Clean header with subtle background
-        doc.setFillColor(248, 249, 250);
-        doc.rect(15, businessNameY - 12, 180, 20, 'F');
-        doc.setDrawColor(220, 221, 225);
-        doc.setLineWidth(0.5);
-        doc.rect(15, businessNameY - 12, 180, 20, 'D');
-        
-        // Business name with professional typography
-        doc.setTextColor(33, 37, 41);
-        doc.setFontSize(22);
-        doc.setFont('helvetica', 'bold');
-        doc.text(this.businessSettings.business_name, 20, businessNameY);
-        
-        // Document title with elegant styling
-        doc.setTextColor(108, 117, 125);
-        doc.setFontSize(14);
-        doc.setFont('helvetica', 'normal');
-        doc.text(documentTitle.toUpperCase(), 190, businessNameY, { align: 'right' });
-        
-        // Document number with emphasis
-        doc.setTextColor(220, 53, 69);
-        doc.setFontSize(16);
-        doc.setFont('helvetica', 'bold');
-        doc.text(documentNumber, 190, businessNameY + 6, { align: 'right' });
-        
-        // Reset font
-        doc.setFontSize(10);
-        doc.setFont(undefined, 'normal');
-        
-        // Business information section with organized layout
-        let yPos = businessNameY + 20;
-        doc.setTextColor(73, 80, 87);
-        doc.setFontSize(9);
-        doc.setFont('helvetica', 'normal');
-        
-        // Business details in clean format
-        if (this.businessSettings.address) {
-            const addressLines = this.businessSettings.address.split('\n');
-            addressLines.forEach(line => {
-                doc.text(line.trim(), 20, yPos);
-                yPos += 4;
-            });
-        }
-        if (this.businessSettings.email) {
-            doc.text(this.businessSettings.email, 20, yPos);
-            yPos += 4;
-        }
-        if (this.businessSettings.phone) {
-            doc.text(this.businessSettings.phone, 20, yPos);
-            yPos += 4;
-        }
-        
-        // Elegant separator line
-        const lineY = Math.max(70, yPos + 8);
-        doc.setDrawColor(220, 221, 225);
-        doc.setLineWidth(1);
-        doc.line(20, lineY, 190, lineY);
-        
-        // Client information with professional styling
-        yPos = lineY + 12;
-        
-        // Bill To section header
-        doc.setFillColor(248, 249, 250);
-        doc.rect(20, yPos - 3, 80, 8, 'F');
-        doc.setTextColor(33, 37, 41);
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'bold');
-        doc.text('BILL TO', 22, yPos + 2);
-        yPos += 12;
-        
-        // Client details with consistent formatting
-        doc.setTextColor(73, 80, 87);
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'bold');
-        doc.text(this.selectedClient.name, 20, yPos);
-        yPos += 5;
-        
-        doc.setFont('helvetica', 'normal');
-        if (this.selectedClient.company) {
-            doc.text(this.selectedClient.company, 20, yPos);
-            yPos += 4;
-        }
-        if (this.selectedClient.address) {
-            const clientAddressLines = this.selectedClient.address.split('\n');
-            clientAddressLines.forEach(line => {
-                doc.text(line.trim(), 20, yPos);
-                yPos += 4;
-            });
-        }
-        if (this.selectedClient.email) {
-            doc.text(this.selectedClient.email, 20, yPos);
-            yPos += 4;
-        }
-        if (this.selectedClient.phone) {
-            doc.text(this.selectedClient.phone, 20, yPos);
-        }
-        
-        // Date information with aligned layout
-        let dateY = lineY + 12;
-        
-        // Date section styling
-        doc.setFillColor(248, 249, 250);
-        doc.rect(130, dateY - 3, 60, 20, 'F');
-        
-        doc.setTextColor(73, 80, 87);
-        doc.setFontSize(9);
-        doc.setFont('helvetica', 'bold');
-        
-        if (issueDate) {
-            doc.text('DATE:', 132, dateY + 2);
-            doc.setFont('helvetica', 'normal');
-            doc.text(formatDate(issueDate), 165, dateY + 2, { align: 'left' });
-            dateY += 6;
-        }
-        if (dueDate) {
-            doc.setFont('helvetica', 'bold');
-            doc.text('DUE DATE:', 132, dateY + 2);
-            doc.setFont('helvetica', 'normal');
-            doc.text(formatDate(dueDate), 165, dateY + 2, { align: 'left' });
-        }
-        
-        // Modern table system with precise measurements
-        const tableStartY = Math.max(110, yPos + 20);
-        const tableX = 20;
-        const tableWidth = 170;
-        const rowHeight = 10;
-        
-        // Fixed table layout with precise column widths
-        const cols = {
-            desc: { x: tableX, w: 80 },
-            qty: { x: tableX + 80, w: 25 },
-            price: { x: tableX + 105, w: 35 },
-            total: { x: tableX + 140, w: 30 }
+        // Prepare data for server-side PDF generation
+        const pdfData = {
+            business_name: this.businessSettings.business_name,
+            document_type: this.documentType,
+            document_number: documentNumber,
+            client: this.selectedClient,
+            issue_date: issueDate,
+            due_date: dueDate,
+            notes: notes,
+            items: this.items.filter(item => item.description.trim()),
+            totals: {
+                subtotal: subtotal,
+                tax_amount: taxAmount,
+                total: total,
+                tax_rate: taxRate
+            },
+            currency_symbol: this.businessSettings.currency_symbol || '$'
         };
         
-        // Helper function for proper number formatting with fixed widths
-        const formatNumberForTable = (value, isQuantity = false) => {
-            if (isQuantity) {
-                return parseFloat(value).toLocaleString('en-US', { 
-                    minimumFractionDigits: 0, 
-                    maximumFractionDigits: 2 
-                });
-            } else {
-                // Currency formatting
-                const numericValue = parseFloat(value);
-                const symbol = this.businessSettings?.currency_symbol || '$';
-                return symbol + numericValue.toLocaleString('en-US', { 
-                    minimumFractionDigits: 2, 
-                    maximumFractionDigits: 2 
-                });
-            }
-        };
-        
-        // Helper function to fit text with proper truncation
-        const fitTextInColumn = (text, maxWidth, fontSize = 9) => {
-            doc.setFontSize(fontSize);
-            let fitted = text.toString();
-            while (doc.getTextWidth(fitted) > maxWidth - 4 && fitted.length > 1) {
-                fitted = fitted.slice(0, -1);
-            }
-            if (fitted !== text.toString() && fitted.length > 3) {
-                fitted = fitted.slice(0, -3) + '...';
-            }
-            return fitted;
-        };
-        
-        // Bold table header with fixed grid
-        doc.setFillColor(33, 37, 41);  // Dark header
-        doc.rect(tableX, tableStartY - 12, tableWidth, 12, 'F');
-        
-        // Strong column borders
-        doc.setDrawColor(255, 255, 255);
-        doc.setLineWidth(1);
-        doc.line(cols.qty.x, tableStartY - 12, cols.qty.x, tableStartY);
-        doc.line(cols.price.x, tableStartY - 12, cols.price.x, tableStartY);
-        doc.line(cols.total.x, tableStartY - 12, cols.total.x, tableStartY);
-        
-        // Bold header text with better positioning
-        doc.setTextColor(255, 255, 255);
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(10);
-        doc.text('DESCRIPTION', cols.desc.x + 3, tableStartY - 4);
-        doc.text('QTY', cols.qty.x + cols.qty.w - 3, tableStartY - 4, { align: 'right' });
-        doc.text('UNIT PRICE', cols.price.x + cols.price.w - 3, tableStartY - 4, { align: 'right' });
-        doc.text('AMOUNT', cols.total.x + cols.total.w - 3, tableStartY - 4, { align: 'right' });
-        
-        // Draw data rows
-        doc.setFont(undefined, 'normal');
-        let rowY = tableStartY + 2;
-        
-        this.items.forEach((item, index) => {
-            // Strong alternating row backgrounds
-            if (index % 2 === 0) {
-                doc.setFillColor(248, 249, 250);
-                doc.rect(tableX, rowY, tableWidth, rowHeight, 'F');
-            }
-            
-            // Strong grid borders
-            doc.setDrawColor(180, 180, 180);
-            doc.setLineWidth(0.5);
-            doc.rect(tableX, rowY, tableWidth, rowHeight, 'D');
-            
-            // Bold column separators
-            doc.setLineWidth(1);
-            doc.line(cols.qty.x, rowY, cols.qty.x, rowY + rowHeight);
-            doc.line(cols.price.x, rowY, cols.price.x, rowY + rowHeight);
-            doc.line(cols.total.x, rowY, cols.total.x, rowY + rowHeight);
-            
-            const textY = rowY + 7;
-            doc.setTextColor(33, 37, 41);
-            
-            // Description with bold font
-            const desc = fitTextInColumn(item.description || '-', cols.desc.w);
-            doc.setFontSize(10);
-            doc.setFont('helvetica', 'bold');
-            doc.text(desc, cols.desc.x + 3, textY);
-            
-            // Quantity - right aligned with bold formatting
-            const qtyFormatted = formatNumberForTable(item.quantity, true);
-            doc.setFontSize(10);
-            doc.setFont('helvetica', 'bold');
-            doc.text(qtyFormatted, cols.qty.x + cols.qty.w - 3, textY, { align: 'right' });
-            
-            // Price - right aligned with bold currency formatting
-            const priceFormatted = formatNumberForTable(item.unit_price);
-            doc.setFontSize(10);
-            doc.setFont('helvetica', 'bold');
-            doc.text(priceFormatted, cols.price.x + cols.price.w - 3, textY, { align: 'right' });
-            
-            // Total - right aligned with strong emphasis
-            const totalFormatted = formatNumberForTable(item.quantity * item.unit_price);
-            doc.setFontSize(10);
-            doc.setFont('helvetica', 'bold');
-            doc.setTextColor(220, 53, 69);  // Red color for emphasis
-            doc.text(totalFormatted, cols.total.x + cols.total.w - 3, textY, { align: 'right' });
-            
-            rowY += rowHeight;
-        });
-        
-        // Professional totals section
-        const totalsStartY = rowY + 15;
-        const totalsWidth = 55;
-        const totalsX = tableX + tableWidth - totalsWidth;
-        
-        doc.setTextColor(73, 80, 87);
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(10);
-        
-        // Subtotal row with proper formatting
-        let currentTotalY = totalsStartY;
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(11);
-        doc.text('Subtotal:', totalsX, currentTotalY);
-        const subtotalFormatted = formatNumberForTable(subtotal);
-        doc.text(subtotalFormatted, totalsX + totalsWidth - 2, currentTotalY, { align: 'right' });
-        
-        // Tax row if applicable
-        if (taxRate > 0) {
-            currentTotalY += 7;
-            doc.text(`Tax (${taxRate}%):`, totalsX, currentTotalY);
-            const taxFormatted = formatNumberForTable(taxAmount);
-            doc.text(taxFormatted, totalsX + totalsWidth - 2, currentTotalY, { align: 'right' });
-        }
-        
-        // Total separator line
-        currentTotalY += 10;
-        doc.setDrawColor(33, 37, 41);
-        doc.setLineWidth(2);
-        doc.line(totalsX, currentTotalY - 3, totalsX + totalsWidth, currentTotalY - 3);
-        
-        // Final total with strong emphasis
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(14);
-        doc.setTextColor(220, 53, 69);
-        doc.text('TOTAL:', totalsX, currentTotalY + 3);
-        const finalTotalFormatted = formatNumberForTable(total);
-        doc.text(finalTotalFormatted, totalsX + totalsWidth - 2, currentTotalY + 3, { align: 'right' });
-        
-        // Reset text color
-        doc.setTextColor(33, 37, 41);
-        
-        // Update currentY for subsequent elements
-        let currentY = currentTotalY + 15;
-        
-        // Notes
-        if (notes) {
-            currentY += 20;
-            doc.setFont(undefined, 'bold');
-            doc.text('Notes:', 20, currentY);
-            doc.setFont(undefined, 'normal');
-            
-            const noteLines = notes.split('\n');
-            noteLines.forEach(line => {
-                currentY += 8;
-                doc.text(line, 20, currentY);
+        try {
+            const response = await fetch('/api/generate-pdf', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(pdfData)
             });
-        }
-        
-        // Add signature if available
-        if (this.businessSettings.signature_url) {
-            try {
-                const signatureData = await this.loadImageAsBase64(this.businessSettings.signature_url);
-                if (signatureData) {
-                    // Add signature (max width 60, max height 30)
-                    const signatureWidth = 60;
-                    const signatureHeight = 30;
-                    const signatureY = Math.max(currentY + 20, doc.internal.pageSize.height - 50);
-                    
-                    doc.addImage(signatureData, 'PNG', 20, signatureY, signatureWidth, signatureHeight);
-                    
-                    // Add signature label
-                    doc.setFontSize(8);
-                    doc.text('Authorized Signature', 20, signatureY + signatureHeight + 5);
-                }
-            } catch (error) {
-                console.warn('Could not load signature:', error);
-            }
-        }
-        
-        // Save PDF and store for download
-        const filename = `${documentNumber}.pdf`;
-        this.generatedPdfBlob = doc.output('blob');
-        this.generatedPdfFilename = filename;
-        
-        // Show download button
-        this.showDownloadButton();
-        
-        showAlert('PDF generated successfully! Click "Download PDF" to save it.', 'success');
-    }
-    
-    async loadImageAsBase64(url) {
-        return new Promise((resolve, reject) => {
-            const img = new Image();
-            img.crossOrigin = 'anonymous';
             
-            img.onload = function() {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                
-                canvas.width = img.width;
-                canvas.height = img.height;
-                
-                ctx.drawImage(img, 0, 0);
-                
-                try {
-                    const dataURL = canvas.toDataURL('image/png');
-                    resolve(dataURL);
-                } catch (error) {
-                    reject(error);
-                }
-            };
-            
-            img.onerror = function() {
-                reject(new Error('Failed to load image'));
-            };
-            
-            img.src = url;
-        });
-    }
-    
-    showDownloadButton() {
-        // Remove existing download button if any
-        const existingBtn = document.getElementById('downloadPdfBtn');
-        if (existingBtn) {
-            existingBtn.remove();
-        }
-        
-        // Create download button
-        const downloadBtn = document.createElement('button');
-        downloadBtn.type = 'button';
-        downloadBtn.id = 'downloadPdfBtn';
-        downloadBtn.className = 'btn btn-success';
-        downloadBtn.innerHTML = '<i class="fas fa-download me-2"></i>Download PDF';
-        
-        // Add click handler
-        downloadBtn.addEventListener('click', () => {
-            if (this.generatedPdfBlob && this.generatedPdfFilename) {
-                const url = URL.createObjectURL(this.generatedPdfBlob);
+            if (response.ok) {
+                // Create download link
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
+                a.style.display = 'none';
                 a.href = url;
-                a.download = this.generatedPdfFilename;
+                a.download = `${documentNumber}.pdf`;
                 document.body.appendChild(a);
                 a.click();
+                window.URL.revokeObjectURL(url);
                 document.body.removeChild(a);
-                URL.revokeObjectURL(url);
                 
                 showAlert('PDF downloaded successfully!', 'success');
+            } else {
+                const errorData = await response.json();
+                showAlert('Error generating PDF: ' + (errorData.error || 'Unknown error'), 'danger');
             }
-        });
-        
-        // Insert after the Generate PDF button
-        const generateBtn = document.getElementById('generatePdfBtn');
-        generateBtn.parentNode.insertBefore(downloadBtn, generateBtn.nextSibling);
+        } catch (error) {
+            console.error('PDF generation error:', error);
+            showAlert('Error generating PDF: ' + error.message, 'danger');
+        }
     }
+    
+    
     
     async saveNewClient() {
         const formData = {

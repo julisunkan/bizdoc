@@ -216,3 +216,171 @@ def api_import_settings():
 def api_next_document_number(document_type):
     number = generate_document_number(document_type)
     return jsonify({'document_number': number})
+
+@app.route('/api/generate-pdf', methods=['POST'])
+def api_generate_pdf():
+    from flask import send_file
+    import io
+    from reportlab.lib.pagesizes import letter
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.units import inch
+    from reportlab.lib import colors
+    from reportlab.lib.enums import TA_LEFT, TA_RIGHT, TA_CENTER
+    
+    data = request.get_json()
+    
+    try:
+        # Create PDF buffer
+        buffer = io.BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=letter, rightMargin=72, leftMargin=72, topMargin=72, bottomMargin=18)
+        
+        # Build PDF content
+        story = []
+        styles = getSampleStyleSheet()
+        
+        # Custom styles
+        title_style = ParagraphStyle(
+            'CustomTitle',
+            parent=styles['Heading1'],
+            fontSize=24,
+            spaceAfter=30,
+            textColor=colors.HexColor('#007AFF'),
+            alignment=TA_CENTER
+        )
+        
+        header_style = ParagraphStyle(
+            'CustomHeader',
+            parent=styles['Heading2'],
+            fontSize=16,
+            spaceAfter=12,
+            textColor=colors.HexColor('#333333')
+        )
+        
+        # Business info
+        business_name = data.get('business_name', 'Business Name')
+        document_type = data.get('document_type', 'Document').title()
+        document_number = data.get('document_number', 'DOC-001')
+        
+        # Title
+        title = Paragraph(f"{business_name}", title_style)
+        story.append(title)
+        
+        # Document type and number
+        doc_header = Paragraph(f"{document_type}: {document_number}", header_style)
+        story.append(doc_header)
+        story.append(Spacer(1, 20))
+        
+        # Client info
+        client_info = data.get('client', {})
+        if client_info:
+            client_text = f"""
+            <b>Bill To:</b><br/>
+            {client_info.get('name', '')}<br/>
+            {client_info.get('company', '')}<br/>
+            {client_info.get('address', '').replace('\n', '<br/>')}<br/>
+            {client_info.get('email', '')}<br/>
+            {client_info.get('phone', '')}
+            """
+            client_para = Paragraph(client_text, styles['Normal'])
+            story.append(client_para)
+            story.append(Spacer(1, 20))
+        
+        # Date info
+        issue_date = data.get('issue_date', '')
+        due_date = data.get('due_date', '')
+        if issue_date:
+            date_text = f"<b>Date:</b> {issue_date}"
+            if due_date:
+                date_text += f"<br/><b>Due Date:</b> {due_date}"
+            date_para = Paragraph(date_text, styles['Normal'])
+            story.append(date_para)
+            story.append(Spacer(1, 20))
+        
+        # Items table
+        items = data.get('items', [])
+        if items:
+            table_data = [['Description', 'Qty', 'Unit Price', 'Total']]
+            
+            for item in items:
+                qty = float(item.get('quantity', 0))
+                price = float(item.get('unit_price', 0))
+                total = qty * price
+                currency_symbol = data.get('currency_symbol', '$')
+                
+                table_data.append([
+                    item.get('description', ''),
+                    str(qty),
+                    f"{currency_symbol}{price:.2f}",
+                    f"{currency_symbol}{total:.2f}"
+                ])
+            
+            # Create table
+            table = Table(table_data, colWidths=[3*inch, 1*inch, 1.5*inch, 1.5*inch])
+            table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#f0f0f0')),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
+                ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+                ('ALIGN', (1, 0), (-1, -1), 'RIGHT'),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, 0), 12),
+                ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+                ('BACKGROUND', (0, 1), (-1, -1), colors.white),
+                ('GRID', (0, 0), (-1, -1), 1, colors.black)
+            ]))
+            
+            story.append(table)
+            story.append(Spacer(1, 20))
+        
+        # Totals
+        totals = data.get('totals', {})
+        if totals:
+            currency_symbol = data.get('currency_symbol', '$')
+            subtotal = totals.get('subtotal', 0)
+            tax_amount = totals.get('tax_amount', 0)
+            total = totals.get('total', 0)
+            tax_rate = totals.get('tax_rate', 0)
+            
+            totals_data = [
+                ['Subtotal:', f"{currency_symbol}{subtotal:.2f}"]
+            ]
+            
+            if tax_rate > 0:
+                totals_data.append([f'Tax ({tax_rate}%):', f"{currency_symbol}{tax_amount:.2f}"])
+            
+            totals_data.append(['<b>TOTAL:</b>', f"<b>{currency_symbol}{total:.2f}</b>"])
+            
+            totals_table = Table(totals_data, colWidths=[4*inch, 2*inch])
+            totals_table.setStyle(TableStyle([
+                ('ALIGN', (0, 0), (-1, -1), 'RIGHT'),
+                ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, -1), (-1, -1), 14),
+                ('TOPPADDING', (0, -1), (-1, -1), 12),
+                ('LINEABOVE', (0, -1), (-1, -1), 2, colors.black)
+            ]))
+            
+            story.append(totals_table)
+        
+        # Notes
+        notes = data.get('notes', '')
+        if notes:
+            story.append(Spacer(1, 20))
+            notes_para = Paragraph(f"<b>Notes:</b><br/>{notes}", styles['Normal'])
+            story.append(notes_para)
+        
+        # Build PDF
+        doc.build(story)
+        buffer.seek(0)
+        
+        # Return PDF file
+        filename = f"{document_number}.pdf"
+        return send_file(
+            buffer,
+            as_attachment=True,
+            download_name=filename,
+            mimetype='application/pdf'
+        )
+        
+    except Exception as e:
+        logging.error(f"Error generating PDF: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
