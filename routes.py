@@ -348,7 +348,7 @@ def api_generate_pdf():
             if tax_rate > 0:
                 totals_data.append([f'Tax ({tax_rate}%):', f"{currency_symbol}{tax_amount:.2f}"])
             
-            totals_data.append(['<b>TOTAL:</b>', f"<b>{currency_symbol}{total:.2f}</b>"])
+            totals_data.append(['TOTAL:', f"{currency_symbol}{total:.2f}"])
             
             totals_table = Table(totals_data, colWidths=[4*inch, 2*inch])
             totals_table.setStyle(TableStyle([
@@ -356,7 +356,8 @@ def api_generate_pdf():
                 ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
                 ('FONTSIZE', (0, -1), (-1, -1), 14),
                 ('TOPPADDING', (0, -1), (-1, -1), 12),
-                ('LINEABOVE', (0, -1), (-1, -1), 2, colors.black)
+                ('LINEABOVE', (0, -1), (-1, -1), 2, colors.black),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold')
             ]))
             
             story.append(totals_table)
