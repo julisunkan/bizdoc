@@ -354,6 +354,11 @@ class DocumentGenerator {
         // Prepare data for server-side PDF generation
         const pdfData = {
             business_name: this.businessSettings.business_name,
+            business_email: this.businessSettings.email,
+            business_phone: this.businessSettings.phone,
+            business_address: this.businessSettings.address,
+            business_logo: this.businessSettings.logo_url,
+            business_signature: this.businessSettings.signature_url,
             document_type: this.documentType,
             document_number: documentNumber,
             client: this.selectedClient,

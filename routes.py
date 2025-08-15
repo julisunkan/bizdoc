@@ -289,6 +289,11 @@ def api_generate_pdf():
             fontName='Helvetica'
         )
 
+        # Get business settings for PDF generation
+        business_settings = BusinessSettings.query.first()
+        if not business_settings:
+            business_settings = BusinessSettings()
+
         # Business info and document header
         business_name = data.get('business_name', 'Business Name')
         business_email = data.get('business_email', '')
@@ -301,7 +306,7 @@ def api_generate_pdf():
 
         # Professional header with business name and logo in aligned layout
         header_data = []
-        
+
         # Create business info section
         business_info_lines = [f"<b>{business_name}</b>"]
         if business_address:
@@ -310,9 +315,9 @@ def api_generate_pdf():
             business_info_lines.append(f"Email: {business_email}")
         if business_phone:
             business_info_lines.append(f"Phone: {business_phone}")
-        
+
         business_info_text = "<br/>".join(business_info_lines)
-        
+
         # Handle logo and business info layout
         if business_logo:
             try:
@@ -323,7 +328,7 @@ def api_generate_pdf():
                 header_data.append(["", Paragraph(business_info_text, body_style)])
         else:
             header_data.append(["", Paragraph(business_info_text, body_style)])
-        
+
         if header_data:
             header_table = Table(header_data, colWidths=[1.8*inch, 4.7*inch])
             header_table.setStyle(TableStyle([
