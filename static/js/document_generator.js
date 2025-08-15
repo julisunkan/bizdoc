@@ -86,9 +86,6 @@ class DocumentGenerator {
             }
         });
         
-        // Form submission
-        document.getElementById('documentForm').addEventListener('submit', (e) => this.saveDocument(e));
-        
         // Save client modal
         document.getElementById('saveClientBtn').addEventListener('click', () => this.saveNewClient());
     }
@@ -740,90 +737,6 @@ class DocumentGenerator {
             
             img.src = url;
         });
-    }
-    
-    async saveDocument(e) {
-        e.preventDefault();
-        
-        console.log('Save document called');
-        console.log('Document type:', this.documentType);
-        console.log('Selected client:', this.selectedClient);
-        console.log('Items:', this.items);
-        
-        // Validate document type and client
-        if (!this.documentType) {
-            showAlert('Please select a document type', 'warning');
-            return;
-        }
-        
-        if (!this.selectedClient || !this.selectedClient.id) {
-            showAlert('Please select a client', 'warning');
-            return;
-        }
-        
-        // Update items from current form state
-        this.updateItemIndices();
-        
-        // Validate items
-        if (this.items.length === 0 || !this.items.some(item => item.description.trim())) {
-            showAlert('Please add at least one item with a description', 'warning');
-            return;
-        }
-        
-        const formData = {
-            document_type: this.documentType,
-            client_id: parseInt(this.selectedClient.id),
-            issue_date: document.getElementById('issueDate').value,
-            due_date: document.getElementById('dueDate').value || null,
-            notes: document.getElementById('notes').value || '',
-            status: 'draft',
-            items: this.items.filter(item => item.description.trim()) // Only include items with descriptions
-        };
-        
-        console.log('Sending form data:', formData);
-        
-        try {
-            const response = await fetch('/api/documents', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(formData)
-            });
-            
-            const result = await response.json();
-            console.log('Server response:', result);
-            
-            if (result.success) {
-                showAlert(`${this.documentType.charAt(0).toUpperCase() + this.documentType.slice(1)} saved successfully! Document number: ${result.document_number}`, 'success');
-                
-                // Reset form after a delay
-                setTimeout(() => {
-                    document.getElementById('documentForm').reset();
-                    document.getElementById('itemsContainer').innerHTML = '';
-                    this.items = [];
-                    this.selectedClient = null;
-                    this.documentType = '';
-                    document.getElementById('documentType').value = '';
-                    document.getElementById('clientSelect').value = '';
-                    this.addInitialItem();
-                    this.updatePreview();
-                    
-                    // Hide download button and clear PDF data
-                    const downloadBtn = document.getElementById('downloadPdfBtn');
-                    if (downloadBtn) {
-                        downloadBtn.remove();
-                    }
-                    this.generatedPdfBlob = null;
-                    this.generatedPdfFilename = null;
-                }, 2000);
-            } else {
-                showAlert('Error saving document: ' + (result.error || result.message || 'Unknown error'), 'danger');
-            }
-        } catch (error) {
-            console.error('Error saving document:', error);
-            showAlert('Error saving document: ' + error.message, 'danger');
-        }
     }
     
     showDownloadButton() {
