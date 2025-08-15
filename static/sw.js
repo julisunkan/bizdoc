@@ -1,6 +1,6 @@
-// Service Worker for Business Document Generator PWA
+// Service Worker for Business Documents Generator PWA
 
-const CACHE_NAME = 'business-doc-generator-v1';
+const CACHE_NAME = 'business-docs-generator-v1';
 const urlsToCache = [
     '/',
     '/generate',
