@@ -6,7 +6,9 @@ import json
 import io
 
 def generate_document_number(document_type):
-    """Generate next document number based on type"""
+    """Generate document number with timestamp format: Year-Month-Day-Hour-Minute-Seconds"""
+    from datetime import datetime
+    
     business_settings = BusinessSettings.query.first()
     
     if document_type == 'invoice':
@@ -18,21 +20,10 @@ def generate_document_number(document_type):
     else:
         prefix = 'DOC-'
     
-    # Get the highest number for this document type
-    last_doc = Document.query.filter(
-        Document.document_number.like(f'{prefix}%')
-    ).order_by(Document.document_number.desc()).first()
+    # Generate timestamp in format: Year-Month-Day-Hour-Minute-Seconds
+    timestamp = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
     
-    if last_doc:
-        try:
-            last_number = int(last_doc.document_number.replace(prefix, ''))
-            next_number = last_number + 1
-        except ValueError:
-            next_number = 1
-    else:
-        next_number = 1
-    
-    return f"{prefix}{next_number:05d}"
+    return f"{prefix}{timestamp}"
 
 def export_to_csv(data):
     """Export business settings to CSV"""
