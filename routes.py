@@ -1,10 +1,18 @@
-from flask import render_template, request, jsonify, redirect, url_for, flash
+from flask import render_template, request, jsonify, redirect, url_for, flash, send_file
 from app import app, db
 from models import BusinessSettings, Client, Document, DocumentItem
 from utils import generate_document_number, export_to_csv, export_to_json, import_from_csv, import_from_json
 import json
 from datetime import datetime, date
 import logging
+import io
+import os
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import inch
+from reportlab.lib import colors
+from reportlab.lib.enums import TA_LEFT, TA_RIGHT, TA_CENTER
 
 @app.route('/')
 def index():
@@ -219,15 +227,6 @@ def api_next_document_number(document_type):
 
 @app.route('/api/generate-pdf', methods=['POST'])
 def api_generate_pdf():
-    import io
-    import os
-    from reportlab.lib.pagesizes import letter
-    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
-    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-    from reportlab.lib.units import inch
-    from reportlab.lib import colors
-    from reportlab.lib.enums import TA_LEFT, TA_RIGHT, TA_CENTER
-    
     data = request.get_json()
     
     try:
@@ -395,9 +394,6 @@ def api_generate_pdf():
 
 @app.route('/api/download-pdf/<filename>')
 def api_download_pdf(filename):
-    from flask import send_file
-    import os
-    
     try:
         temp_dir = os.path.join(os.getcwd(), 'temp_pdfs')
         filepath = os.path.join(temp_dir, filename)
